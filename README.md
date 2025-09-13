@@ -85,8 +85,3 @@ It uses **Generative AI (Gemini)** + **RAG (Retrieval Augmented Generation)** fo
 Set your Twilio number webhook to:
    ```bash
    https://your-ngrok-id.ngrok.io/voice
-
-
-
-
-
