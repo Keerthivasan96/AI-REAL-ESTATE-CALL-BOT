@@ -29,3 +29,15 @@ It uses **Generative AI (Gemini)** + **RAG (Retrieval Augmented Generation)** fo
 ├── requirements.txt # Python dependencies
 
 └── README.md # Project documentation
+
+
+
+---
+
+## ⚙️ Installation
+
+1. **Clone the repo**
+   ```bash
+   git clone https://github.com/Keerthivasan96/AI-REAL-ESTATE-CALL-BOT.git
+   cd AI-REAL-ESTATE-CALL-BOT
+
