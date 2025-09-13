@@ -48,13 +48,40 @@ It uses **Generative AI (Gemini)** + **RAG (Retrieval Augmented Generation)** fo
    source venv/bin/activate   # (Linux/Mac)
    venv\Scripts\activate      # (Windows)
    
-3.**Install dependencies**
+3. **Install dependencies**
    ```bash
    pip install -r requirements.txt
 
+4. **Configure your environment**
+   ```bash
+
+   Copy .env.example → .env
+
+   Fill in your API keys and credentials
+
+**🛠️ Usage**
+
+1. **Local Voice Assistant**
+   ```bash
+   
+   Run the bot locally with microphone + speaker:
+
+   python chat.py
+
+2. **2. RAG Knowledge Base**
+   
+   Test the property knowledge base directly:
+   ```bash
+   python properties_RAG.py
+
+3. **Twilio Call Bot**
+   
+   Expose Flask app to the internet (e.g. ngrok):
+   ```bash
+   python twilio_webhookx.py
+   ngrok http 5000
 
 
-
-
-
-  
+Set your Twilio number webhook to:
+```bash
+   https://your-ngrok-id.ngrok.io/voice
