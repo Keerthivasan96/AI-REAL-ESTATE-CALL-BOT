@@ -1,5 +1,21 @@
+"""
+properties_RAG.py - Retrieval Augmented Generation for Real Estate Assistant
+----------------------------------------------------------------------------
+This module builds and queries a knowledge base for real estate data
+using LangChain, FAISS, and Gemini embeddings.
+
+Features:
+- Loads CSV and TXT files from the local `data/` folder
+- Builds a FAISS vector database
+- Provides context-aware answers for property-related queries
+- Includes fallback for company profile questions
+
+Note:
+- Place your CSV/TXT knowledge files in the `data/` folder
+- Configure your API key in `.env`
+"""
+
 import os
-from tqdm import tqdm
 from dotenv import load_dotenv
 import google.generativeai as genai
 from langchain_community.vectorstores import FAISS
@@ -11,40 +27,49 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 load_dotenv()
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
+# File paths (use local `data/` folder instead of absolute paths)
 DATA_FILES = {
     "csv": [
-        r"C:\Users\Keerthivasan R S\Videos\PYTHON PROGRAMS\FINAL RAG\dubai_property_index.csv",
-        r"C:\Users\Keerthivasan R S\Videos\PYTHON PROGRAMS\FINAL RAG\summary_transactions.csv",
-        r"C:\Users\Keerthivasan R S\Videos\PYTHON PROGRAMS\FINAL RAG\valuations1_rag.csv",
-        r"C:\Users\Keerthivasan R S\Videos\PYTHON PROGRAMS\FINAL RAG\valuation2_rag.csv",
-        r"C:\Users\Keerthivasan R S\Videos\PYTHON PROGRAMS\FINAL RAG\rents_rag.csv",
-        r"C:\Users\Keerthivasan R S\Videos\PYTHON PROGRAMS\FINAL RAG\Residental_Sale_Index_rag.csv",
-        r"C:\Users\Keerthivasan R S\Videos\PYTHON PROGRAMS\FINAL RAG\faq_questions.csv"
+        "data/dubai_property_index.csv",
+        "data/summary_transactions.csv",
+        "data/valuations1_rag.csv",
+        "data/valuation2_rag.csv",
+        "data/rents_rag.csv",
+        "data/residential_sale_index_rag.csv",
+        "data/faq_questions.csv",
     ],
     "txt": [
-        r"C:\Users\Keerthivasan R S\Videos\PYTHON PROGRAMS\FINAL RAG\about company.txt",
-        r"C:\Users\Keerthivasan R S\Videos\PYTHON PROGRAMS\FINAL RAG\Dubai_Real_Estate_Market_Analysis.txt",
-        r"C:\Users\Keerthivasan R S\Videos\PYTHON PROGRAMS\FINAL RAG\aboout the bot.txt"
-    ]
+        "data/about_company.txt",
+        "data/dubai_real_estate_market_analysis.txt",
+        "data/about_the_bot.txt",
+    ],
 }
 
-COMPANY_PROFILE_PATH = r"C:\Users\Keerthivasan R S\Videos\PYTHON PROGRAMS\FINAL RAG\about company.txt"
+COMPANY_PROFILE_PATH = "data/about_company.txt"
+
 
 class RealEstateRAG:
     """
-    Smart context-aware RAG system for Baaz Landmark.
-    Uses market data, property data, and official company profile to answer natural questions.
+    Smart context-aware RAG system for RealEstateCo.
+    Uses market data, property data, and official company profile
+    to answer natural questions.
     """
+
     def __init__(self):
-        self.INDEX_DIR = "baaz_landmark_faiss_index"
+        self.INDEX_DIR = "faiss_index"
         self.embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
         self.vectorstore = self._initialize_vectorstore()
         self.company_profile = self._load_company_profile()
 
     def _initialize_vectorstore(self):
+        """Load or build the FAISS vector store"""
         if os.path.exists(self.INDEX_DIR):
             print(f"✅ Loading existing FAISS index from {self.INDEX_DIR}")
-            return FAISS.load_local(self.INDEX_DIR, self.embeddings, allow_dangerous_deserialization=True)
+            return FAISS.load_local(
+                self.INDEX_DIR,
+                self.embeddings,
+                allow_dangerous_deserialization=True,
+            )
 
         print("📦 No index found. Building new FAISS index...")
         docs = self._load_all_documents()
@@ -64,12 +89,14 @@ class RealEstateRAG:
         return vectorstore
 
     def _load_all_documents(self):
+        """Load all CSV + TXT docs"""
         docs = []
         docs.extend(self._load_csvs(DATA_FILES["csv"]))
         docs.extend(self._load_txts(DATA_FILES["txt"]))
         return docs
 
     def _load_csvs(self, filepaths):
+        """Load CSV files from data/"""
         docs = []
         for path in filepaths:
             if os.path.exists(path):
@@ -84,6 +111,7 @@ class RealEstateRAG:
         return docs
 
     def _load_txts(self, filepaths):
+        """Load TXT files from data/"""
         docs = []
         for path in filepaths:
             if os.path.exists(path):
@@ -99,6 +127,7 @@ class RealEstateRAG:
         return docs
 
     def _load_company_profile(self):
+        """Load the company profile (for brand-related queries)"""
         if os.path.exists(COMPANY_PROFILE_PATH):
             try:
                 return TextLoader(COMPANY_PROFILE_PATH, encoding="utf-8").load()[0].page_content
@@ -109,62 +138,69 @@ class RealEstateRAG:
             print("⚠️ Company profile not found.")
             return ""
 
-    def query_knowledge_base(self, query: str, k: int = 2):
+    def query_knowledge_base(self, query: str, k: int = 2) -> str:
         """
-        Smart RAG query: brand questions go to company profile;
-        else search vectorstore & answer.
+        Smart RAG query: 
+        - Company-related questions → company profile
+        - Else → vectorstore search + Gemini
         """
         query_lower = query.lower()
-        if any(keyword in query_lower for keyword in ["company", "baaz", "founder", "ceo", "head office", "who are you"]):
+        if any(
+            keyword in query_lower
+            for keyword in ["company", "realestateco", "founder", "ceo", "head office"]
+        ):
             return self._generate_company_response(query)
 
         results = self.vectorstore.similarity_search(query, k=k)
         context = "\n\n".join([doc.page_content for doc in results])
 
         if not context.strip():
-            return "Sorry, I couldn't find relevant data now. But I can connect you to a senior advisor!"
+            return "Sorry, I couldn't find relevant data. Would you like me to connect you with an advisor?"
 
         prompt = f"""
-You are Alexa, an AI advisor at Baaz Landmark.
+You are an AI property advisor at RealEstateCo.
 
 Use this market context:
 {context}
 
-User question:
-"{query}"
+User question: "{query}"
 
-✅ Keep it short (2–3 sentences).
-✅ Suggest next step: "Shall I prepare a detailed report?"
-✅ Sound friendly, professional.
+Guidelines:
+- Keep response short (2–3 sentences)
+- End with: "Shall I prepare a detailed report?"
+- Be professional and friendly
 """
         model = genai.GenerativeModel("gemini-2.5-flash")
         return model.generate_content(prompt).text.strip()
 
-    def _generate_company_response(self, query: str):
+    def _generate_company_response(self, query: str) -> str:
+        """Generate answers only from company profile"""
         if not self.company_profile.strip():
-            return "Sorry, I couldn't load our company profile — but I can connect you to a senior advisor."
+            return "Sorry, I couldn't load the company profile. Would you like me to connect you with an advisor?"
 
         prompt = f"""
-You are Alexa at Baaz Landmark.
+You are an AI assistant at RealEstateCo.
 
 Use ONLY this profile:
 {self.company_profile}
 
 User question: "{query}"
 
-✅ Max 3 sentences.
-✅ Include founder, address, contact if asked.
-✅ End with: "If you'd like, I can arrange a call with our senior advisors."
-✅ Never invent info.
+Guidelines:
+- Max 3 sentences
+- Include founder, address, contact if relevant
+- End with: "If you'd like, I can arrange a call with our senior advisors."
+- Never invent information
 """
         model = genai.GenerativeModel("gemini-2.5-flash")
         return model.generate_content(prompt).text.strip()
+
 
 # ✅ Quick test
 if __name__ == "__main__":
     rag = RealEstateRAG()
     test_queries = [
-        "Who founded Baaz Landmark and what services do you offer?",
+        "Who founded RealEstateCo and what services do you offer?",
         "What is the ROI trend for villas in Dubai?",
         "Explain the Dubai residential sale index trend",
     ]

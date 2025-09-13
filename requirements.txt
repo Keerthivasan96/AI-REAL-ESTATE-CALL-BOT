@@ -1,0 +1,16 @@
+streamlit
+google-generativeai
+python-dotenv
+langchain
+PyPDF2
+chromadb
+faiss-cpu
+langchain_google_genai
+SpeechRecognition
+pyttsx3
+pipwin
+pyaudio
+twilio
+flask
+pypdf
+langchain-community
