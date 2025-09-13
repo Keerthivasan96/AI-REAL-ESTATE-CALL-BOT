@@ -41,3 +41,9 @@ It uses **Generative AI (Gemini)** + **RAG (Retrieval Augmented Generation)** fo
    git clone https://github.com/Keerthivasan96/AI-REAL-ESTATE-CALL-BOT.git
    cd AI-REAL-ESTATE-CALL-BOT
 
+
+2.Create a virtual environment
+
+python -m venv venv
+source venv/bin/activate   # (Linux/Mac)
+venv\Scripts\activate      # (Windows)
