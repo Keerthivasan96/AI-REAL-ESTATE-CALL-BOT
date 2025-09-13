@@ -15,3 +15,11 @@ It uses **Generative AI (Gemini)** + **RAG (Retrieval Augmented Generation)** fo
 ---
 
 ## 📂 Project Structure
+.
+├── chat.py # Local AI voice assistant
+├── properties_RAG.py # RAG knowledge base for real estate context
+├── twilio_webhookx.py # Twilio webhook for real phone call integration
+├── data/ # CSV & TXT knowledge base files
+├── .env.example # Example environment variables
+├── requirements.txt # Python dependencies
+└── README.md # Project documentation
