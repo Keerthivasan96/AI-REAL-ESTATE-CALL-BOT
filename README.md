@@ -42,8 +42,10 @@ It uses **Generative AI (Gemini)** + **RAG (Retrieval Augmented Generation)** fo
    cd AI-REAL-ESTATE-CALL-BOT
 
 
-2.Create a virtual environment
-   '''bash
+2. **Create a virtual environment**
+   ```bash
    python -m venv venv
    source venv/bin/activate   # (Linux/Mac)
    venv\Scripts\activate      # (Windows)
+
+  
